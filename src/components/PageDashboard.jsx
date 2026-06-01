@@ -87,9 +87,9 @@ function buildMenuTree(data) {
 
   // Normalize — giữ _index để preserve thứ tự gốc từ API
   const normalized = data.map((item, idx) => ({
-    id:       item.menuCd   ?? item.menuId   ?? item.id,
+    id:       (item.menuCd   ?? item.menuId   ?? item.id)?.trim(),
     name:     item.menuNm   ?? item.menuName ?? item.name  ?? item.text ?? item.title,
-    parentId: item.parentCd ?? item.parentMenuCd ?? item.parentId ?? item.pMenuCd ?? null,
+    parentId: (item.parentCd ?? item.parentMenuCd ?? item.parentId ?? item.pMenuCd ?? null)?.trim() ?? null,
     icon:     item.iconCd   ?? item.icon     ?? item.menuIcon ?? null,
     order:    item.sortNo   ?? item.orderNo  ?? item.sort ?? 0,
     _index:   idx,           // vị trí gốc từ API

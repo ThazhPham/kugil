@@ -8,10 +8,6 @@ export default function FilterPopup({ isOpen, onClose, fields = [], filterValues
   if (!isOpen) return null;
 
   return (
-    <div className="filter-anchor">
-
-  {/* POPUP */}
-  {isOpen && (
     <div className="filter-popup">
 
       <div className="filter-popup__header">
@@ -79,8 +75,5 @@ export default function FilterPopup({ isOpen, onClose, fields = [], filterValues
       </div>
 
     </div>
-  )}
-
-</div>
   );
 }

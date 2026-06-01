@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAutoI18n } from '../../i18n/useAutoI18n';
 import { EyeIcon, EyeSlashIcon } from '../common/Icons';
 import '../../css/UserModals.css';
@@ -14,7 +14,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
   const [errorMsg, setErrorMsg] = useState('');
 
   // Reset state when modal closes
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isOpen) {
       setPassword('');
       setConfirmPassword('');

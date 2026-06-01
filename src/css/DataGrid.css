@@ -105,7 +105,7 @@
 .data-grid-table__row:not(.selected):has(td:not(.sticky-col):hover) td.sticky-col {
   background: #eaeaea; color: #333; z-index: 10;
 }
-.data-grid-table__row:not(.selected):has(td.sticky-col:hover) td.sticky-col { background: var(--primary-color-light); color: #333; z-index: 10; }
+.data-grid-table__row:not(.selected):has(td.sticky-col:hover) td.sticky-col { background: linear-gradient(var(--primary-color-light), var(--primary-color-light)), #fff; color: #333; z-index: 10; }
 .data-grid-table__row:not(.selected):has(td.sticky-col:hover) td:not(.sticky-col) { background: #eaeaea; color: #333; }
 
 
@@ -229,7 +229,7 @@
 .data-grid-table__filter th.sticky-col { z-index: 11; }
 .data-grid-table__row td.sticky-col { background: #fff; }
 .data-grid-table__row.selected td.sticky-col,
-.data-grid-table__row:nth-child(even).selected td.sticky-col { background: var(--primary-color-light); }
+.data-grid-table__row:nth-child(even).selected td.sticky-col { background: linear-gradient(var(--primary-color-light), var(--primary-color-light)), #fff; }
 
 /* ── Pagination ─────────────────────────────────────────── */
 .data-grid-pagination {
@@ -301,3 +301,4 @@
 }
 .data-grid-pagination__page:hover:not(.active) { background: #f5f5f5; }
 .data-grid-pagination__dots { padding: 0 4px; color: #999; }
+

@@ -1,24 +1,15 @@
 import { useTranslation } from "react-i18next";
-import { toAutoKey } from "./autoKey";
-import { registerKeyToLocize } from "./autoRegister";
-import { useRef } from "react";
 
 export const useAutoI18n = () => {
   const { t } = useTranslation();
 
-  const cacheRef = useRef(new Set());
-
   const translate = (text) => {
     if (!text) return "";
-
-    const key = toAutoKey(text);
-
-    // ❗ tránh spam API khi re-render
-    if (!cacheRef.current.has(key)) {
-      cacheRef.current.add(key);
-      registerKeyToLocize(key, text);
-    }
-
+    
+    // Tái tạo lại key đúng format đang lưu trên Locize (menu.xxx_yyy)
+    const key = "menu." + text.toLowerCase().trim().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+    
+    // Gọi t(key, defaultValue) để nếu chưa có dịch nó hiện text gốc
     return t(key, text);
   };
 

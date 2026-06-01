@@ -2,6 +2,7 @@ import { useState } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import ItemPage from "../pages/ItemPage";
+import ItemClassPage from "../pages/ItemClassPage";
 import "../../css/layout/MainLayout.css";
 
 /**
@@ -16,6 +17,7 @@ import "../../css/layout/MainLayout.css";
 /* ── Map menuCd → component ──────────────────────────────── */
 const PAGE_MAP = {
   B009: ItemPage,   // Item
+  B013: ItemClassPage, // Item Class
 };
 
 export default function MainLayout({ menuItems, menuLoading, menuError, children }) {
@@ -25,11 +27,13 @@ export default function MainLayout({ menuItems, menuLoading, menuError, children
 
   // Người dùng chọn menu item → mở tab
   const handleSelectItem = (item) => {
-    const exists = openTabs.find(t => t.id === item.id);
+    const tabId = item.id?.trim() ?? item.id;
+    const tabName = item.name;
+    const exists = openTabs.find(t => t.id === tabId);
     if (!exists) {
-      setOpenTabs(prev => [...prev, { id: item.id, name: item.name }]);
+      setOpenTabs(prev => [...prev, { id: tabId, name: tabName }]);
     }
-    setActiveTabId(item.id);
+    setActiveTabId(tabId);
   };
 
   // Đóng tab
@@ -50,7 +54,7 @@ export default function MainLayout({ menuItems, menuLoading, menuError, children
       return children; // Default content (dashboard)
     }
 
-    const PageComponent = PAGE_MAP[activeTabId];
+    const PageComponent = PAGE_MAP[activeTabId?.trim()];
     if (PageComponent) {
       return <PageComponent />;
     }

@@ -2,9 +2,6 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import Backend from "i18next-locize-backend";
 import LanguageDetector from "i18next-browser-languagedetector";
-import viVN from "./locales/vi-VN.json";
-import en from "./locales/en.json";
-import koKR from "./locales/ko-KR.json";
 
 i18n
   .use(Backend)
@@ -13,19 +10,6 @@ i18n
   .init({
     lng: "en",
     fallbackLng: "en",
-
-    resources: {
-      "en": {
-        login: en
-      },
-      "vi-VN": {
-        login: viVN
-      },
-      "ko-KR": {
-        login: koKR
-      }
-    },
-    partialBundledLanguages: true,
 
     ns: ["login"],
     defaultNS: "login",
