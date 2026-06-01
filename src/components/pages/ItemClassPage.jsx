@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useCallback } from "react";
 import { useAutoI18n } from "../../i18n/useAutoI18n";
 import { fetchGridData } from "../../Api/gridService";
-import ItemPageLayout from "../common/ItemPageLayout";
+import ItemPageLayout from "../common/ItemPageDataGrid.jsx";
 import DxDataGrid from "../common/DxDataGrid";
 import "../../css/ItemPage.css";
 import "../../css/DataGrid.css";
@@ -60,7 +60,7 @@ export default function ItemClassPage() {
       sortOrder: "desc",
       alignment: "center",
       validationRules: [{ type: "required" }],
-      
+      allowEditing: false,
     },
     { 
       dataField: "Name",  
@@ -82,7 +82,7 @@ export default function ItemClassPage() {
            <EditIcon />
         </button>
         )
-      }
+      },
      },
   ], [translate]);
 
@@ -165,11 +165,14 @@ export default function ItemClassPage() {
         externalFilters={externalFilters}
         keyExpr="Code"
         height="100%"
+        
         onInitNewRow={(e) => {
           e.data.Code = "";
           e.data.Name = "";
         }}
+        
       >
+        
         <Selection mode="multiple" showCheckBoxesMode="always" />
         <Editing
           mode="batch"
@@ -177,6 +180,7 @@ export default function ItemClassPage() {
           allowUpdating={true}
           allowDeleting={false}
           newRowPosition="first"
+          startEditAction="dblClick"
         />
       </DxDataGrid>
     </ItemPageLayout>
