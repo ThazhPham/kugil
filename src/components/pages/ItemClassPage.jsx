@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useCallback } from "react";
 import { useAutoI18n } from "../../i18n/useAutoI18n";
-import { fetchGridData } from "../../Api/gridService";
+import { fetchGridData, saveGridData } from "../../Api/gridService";
 import ItemPageLayout from "../common/ItemPageDataGrid.jsx";
 import DxDataGrid from "../common/DxDataGrid";
 import "../../css/ItemPage.css";
@@ -39,6 +39,59 @@ export default function ItemClassPage() {
     gridRef.current?.instance().refresh();
   };
 
+  const handleSave = () => {
+    const grid = gridRef.current?.instance();
+    if (grid) {
+      const controller = grid.getController("validating");
+      if (controller && controller.validate) {
+        controller.validate(true);
+      }
+      grid.saveEditData();
+    }
+  };
+
+  const handleSaving = useCallback((e) => {
+    e.cancel = true; // Ngăn chặn DevExtreme tự động gọi custom store mặc định
+
+    if (e.changes.length) {
+      const gridItems = e.component.getDataSource().items();
+      
+      // Chuyển đổi e.changes sang mảng các object phẳng (phù hợp với backend)
+      const dataToSave = e.changes.map((change, index) => {
+        if (change.type === "insert") {
+          return {
+            ...change.data,
+            UseYN: change.data.UseYN ?? true,
+            _rowIndex: index
+          };
+        } else if (change.type === "update") {
+          // Lấy dòng dữ liệu gốc từ grid và gộp với dữ liệu mới thay đổi
+          const original = gridItems.find(item => item.Code === change.key) || {};
+          return {
+            ...original,
+            ...change.data,
+            _rowIndex: index
+          };
+        }
+        return change.data;
+      });
+
+      e.promise = saveGridData("ItemClass", "B013", dataToSave)
+        .then((res) => {
+          if (res && res.Success !== false) { // Có thể tuỳ chỉnh theo response thực tế
+            e.component.cancelEditData();
+            e.component.refresh();
+          } else {
+            alert(translate("Lỗi khi lưu dữ liệu: ") + (res?.ReturnMess || "Unknown error"));
+          }
+        })
+        .catch((err) => {
+          alert(translate("Lỗi kết nối khi lưu: ") + err.message);
+          throw err;
+        });
+    }
+  }, [translate]);
+
   const handleMultipleRows = (count) => {
     const grid = gridRef.current?.instance();
     if (!grid) return;
@@ -60,7 +113,9 @@ export default function ItemClassPage() {
       sortOrder: "desc",
       alignment: "center",
       validationRules: [{ type: "required" }],
-      allowEditing: false,
+      allowEditing: ({ addRow }) => {
+        addRow?.isnewRow
+      },
     },
     { 
       dataField: "Name",  
@@ -70,7 +125,7 @@ export default function ItemClassPage() {
       validationRules: [{ type: "required" }]
     },
     { dataField: "UseYN", caption: translate("Active"),     width: 150,    dataType: "boolean", alignment: "center" },
-    { dataField: "_action", caption: translate("Actions"),  width: 100,    allowFiltering: false, allowEditing: false,
+    { dataField: "_action", caption: translate("Actions"),  width: 100,    allowFiltering: false,
       alignment: "center",
       cellRender: ({data, rowIndex}) => {
         return ( 
@@ -120,7 +175,7 @@ export default function ItemClassPage() {
       <button
         className="item-action-btn"
         title={translate("Save")}
-        onClick={() => gridRef.current?.instance().saveEditData()}
+        onClick={handleSave}
       >
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
           <path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
@@ -170,7 +225,7 @@ export default function ItemClassPage() {
           e.data.Code = "";
           e.data.Name = "";
         }}
-        
+        onSaving={handleSaving}
       >
         
         <Selection mode="multiple" showCheckBoxesMode="always" />
