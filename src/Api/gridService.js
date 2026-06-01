@@ -55,3 +55,31 @@ export function getImageUrl(path) {
 }
 
 export { API_BASE };
+
+/**
+ * Gọi API lưu data grid (Batch)
+ * @param {string} signature   - Tên module (Item, Plant, BOM, ...)
+ * @param {string} menuCd      - Mã menu (B009, B013, ...)
+ * @param {array} data         - Mảng dữ liệu các dòng cần lưu
+ */
+export async function saveGridData(signature, menuCd, data) {
+  const token = localStorage.getItem("token");
+
+  const res = await axios.post(
+    `${API_BASE}/Masterdata/DataService/Update`,
+    {
+      signature,
+      functionCode: "ADDORUPDATELISTTRAN", // <-- Backend thường cần functionCode để biết chạy tiến trình nào
+      MenuCd: menuCd,
+      Data: data
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return res.data;
+}
