@@ -1,6 +1,10 @@
 /* ================================================================
    ItemPage.css — ITEM LIST grid giống 100% ảnh tham chiếu
    ================================================================ */
+.btn-grid-icon{
+  all: unset;
+
+}
 
 /* ── Page container ─────────────────────────────────────── */
 .item-page {
@@ -189,7 +193,7 @@
 
 /* Data Rows */
 .dx-custom-styled .dx-datagrid-rowsview .dx-row > td {
-  padding: 8px 10px;
+  padding: 10px 16px!important;
   vertical-align: middle;
   border-right: 1px solid #f0f0f0;
   border-bottom: 1px solid #f0f0f0;
@@ -217,6 +221,13 @@
 .dx-custom-styled .dx-datagrid-rowsview .dx-data-row:hover > td {
   background-color: #f9f9f9 !important;
 }
+.dx-custom-styled .dx-datagrid-rowsview .dx-data-row>:nth-of-type(2) {
+   background-color:#f2f2f2 !important;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0 !important;
+  box-shadow : 1px solid #f2f2f2 !important;
+}
+
 
 .dx-custom-styled .dx-datagrid-rowsview .dx-data-row a:hover > td {
   background-color: linear-gradient(var(--primary-color-light, #fdf4f7), var(--primary-color-light, #fdf4f7)), #fff !important;
@@ -257,6 +268,10 @@
 
 /* Hover row fixed column background */
 .dx-datagrid .dx-row.dx-state-hover > td.dx-command-select,
+.dx-datagrid .dx-row.dx-state-hover > td.dx-datagrid-fixed,
+.dx-datagrid-content-fixed .dx-row.dx-state-hover > td {
+  background-color: #f9f9f9 !important;
+}.dx-datagrid .dx-row.dx-state-hover > td.dx-command-select,
 .dx-datagrid .dx-row.dx-state-hover > td.dx-datagrid-fixed,
 .dx-datagrid-content-fixed .dx-row.dx-state-hover > td {
   background-color: #f9f9f9 !important;

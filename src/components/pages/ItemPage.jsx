@@ -84,7 +84,7 @@ export default function ItemPage() {
     setAppliedFilters(filterValues);
     setIsFilterPopupOpen(false);
     if (gridRef.current) {
-      gridRef.current.instance.refresh();
+      gridRef.current.instance().refresh();
     }
   };
 
@@ -93,8 +93,8 @@ export default function ItemPage() {
     setAppliedFilters({});
     setIsFilterPopupOpen(false);
     if (gridRef.current) {
-      gridRef.current.instance.clearFilter();
-      gridRef.current.instance.refresh();
+      gridRef.current.instance().clearFilter();
+      gridRef.current.instance().refresh();
     }
   };
 
@@ -317,6 +317,8 @@ export default function ItemPage() {
           <button className="item-action-btn" title={translate("Add")} onClick={() => { setEditingRow(null); setIsCreateOpen(true); }}>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
           </button>
+
+          {/* Cancel Button */}
 
           {/* Excel Export Button */}
           <button className="item-action-btn item-action-btn--export" title="Export Excel">

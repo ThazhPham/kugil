@@ -41,6 +41,18 @@ const DxDataGrid = forwardRef(({
     const internalRef = useRef(null);
     const gridRef = ref || internalRef;
     const isRemote = !!fetchData;
+    const { onToolbarPreparing, ...otherProps } = restProps;
+
+    const handleToolbarPreparing = (e) => {
+        if (e.toolbarOptions?.items) {
+            e.toolbarOptions.items = e.toolbarOptions.items.filter(
+                (item) => item.name !== 'saveButton' && item.name !== 'revertButton'
+            );
+        }
+        if (onToolbarPreparing) {
+            onToolbarPreparing(e);
+        }
+    };
 
     // Sử dụng custom hook để quản lý toàn bộ logic remote và phân trang
     const {
@@ -76,7 +88,8 @@ const DxDataGrid = forwardRef(({
                     remoteOperations={isRemote}
                     noDataText={loading ? "Loading..." : "No data"}
                     onOptionChanged={handleOptionChanged}
-                    {...restProps}
+                    onToolbarPreparing={handleToolbarPreparing}
+                    {...otherProps}
                 >
                     <FilterRow visible={true} applyFilter="auto" showOperationChooser={false} />
                     <Scrolling mode="standard" showScrollbar="always" />

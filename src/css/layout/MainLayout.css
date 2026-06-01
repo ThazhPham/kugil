@@ -37,8 +37,11 @@
 
 .dashboard-content {
   flex: 1;
-  overflow: auto;
+  overflow: hidden;
+  min-height: 0;
   padding: 0;
   background: var(--content-bg);
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
