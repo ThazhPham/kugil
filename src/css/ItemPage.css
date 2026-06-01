@@ -15,26 +15,42 @@
 /* ── Toolbar ────────────────────────────────────────────── */
 .item-toolbar {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: space-between;
-  padding: 10px 18px 8px;
+  padding: 0;
   background: #fff;
   border-bottom: 1px solid #e8e8e8;
   flex-shrink: 0;
 }
 
-.item-toolbar__left { flex: 1; }
+.item-toolbar__left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-left: 4px solid var(--primary-color);
+  background: linear-gradient(to right, var(--primary-color-light), transparent);
+  padding: 12px 15px;
+  padding-bottom: 10px;
+}
 
 .item-breadcrumb {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   font-size: 12px;
   color: #888;
 }
 .item-breadcrumb__home { font-size: 14px; }
 .item-breadcrumb__sep { color: #ccc; }
-.item-breadcrumb__active { color: var(--primary-color); font-weight: 600; }
+.item-breadcrumb__active { 
+  color: var(--primary-color); 
+  font-weight: 600;
+  background-color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
 
 .item-title {
   margin: 4px 0 0;
@@ -55,7 +71,9 @@
 .item-toolbar__right {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
+  margin-right: 10px;
+  margin-top: 20px;
   flex-shrink: 0;
 }
 
@@ -109,7 +127,7 @@
   display: flex;
   flex-direction: column;
   background: #fff;
-  z-index: 10;
+  z-index: 1000;
   transition: width 0.3s ease;
   box-shadow: -2px 0 10px rgba(0,0,0,0.05);
 }
@@ -121,3 +139,132 @@
 .item-create-section.full {
   width: 100%;
 }
+
+/* ── DevExtreme Grid Custom Styling (Match Image 2) ── */
+.dx-custom-styled .dx-datagrid {
+  font-family: inherit;
+  color: #333;
+}
+
+/* Header */
+.dx-custom-styled .dx-datagrid-headers {
+  background-color: var(--primary-color-light, #fdf4f7); /* Pink tint */
+  color: #333;
+  font-weight: 600;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.dx-custom-styled .dx-datagrid-headers .dx-header-row > td,
+.dx-custom-styled .dx-datagrid-headers .dx-header-row > td.dx-datagrid-fixed {
+  padding: 10px;
+  font-size: 13px;
+  border-right: 1px solid #e8e8e8;
+  background: linear-gradient(var(--primary-color-light, #fdf4f7), var(--primary-color-light, #fdf4f7)), #fff !important;
+}
+
+/* Filter Row */
+.dx-custom-styled .dx-datagrid-filter-row > td {
+  background-color: #fff !important;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 0; /* Remove default td padding to let the input fill the cell */
+}
+
+/* Remove default borders and styling from DevExtreme inputs in filter row */
+.dx-custom-styled .dx-datagrid-filter-row .dx-editor-cell .dx-texteditor,
+.dx-custom-styled .dx-datagrid-filter-row .dx-editor-cell .dx-texteditor-container {
+  background: transparent;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Inject magnifying glass icon and adjust padding */
+.dx-custom-styled .dx-datagrid-filter-row .dx-editor-cell .dx-texteditor-input {
+  padding-left: 28px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="%23666"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: 8px center;
+  font-size: 13px;
+  min-height: 34px;
+}
+
+/* Data Rows */
+.dx-custom-styled .dx-datagrid-rowsview .dx-row > td {
+  padding: 8px 10px;
+  vertical-align: middle;
+  border-right: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+  background-color: #fff !important;
+}
+
+/* Explicit fallback for ALL fixed columns anywhere in the grid */
+.dx-custom-styled .dx-datagrid-fixed {
+  background-color: #fff !important;
+  z-index: 2 !important;
+}
+
+.dx-custom-styled .dx-row-alt > td,
+.dx-custom-styled .dx-row-alt > td.dx-datagrid-fixed {
+  background-color: #fafafa !important;
+}
+
+/* Selected Row / Hover */
+.dx-custom-styled .dx-datagrid-rowsview .dx-selection > td,
+.dx-custom-styled .dx-datagrid-rowsview .dx-selection:hover > td {
+  background: linear-gradient(var(--primary-color-light, #fdf4f7), var(--primary-color-light, #fdf4f7)), #fff !important;
+  color: inherit;
+}
+
+.dx-custom-styled .dx-datagrid-rowsview .dx-data-row:hover > td {
+  background-color: #f9f9f9 !important;
+}
+
+.dx-custom-styled .dx-datagrid-rowsview .dx-data-row a:hover > td {
+  background-color: linear-gradient(var(--primary-color-light, #fdf4f7), var(--primary-color-light, #fdf4f7)), #fff !important;
+  
+}
+
+/* Remove borders on outer grid */
+.dx-custom-styled .dx-datagrid-borders > .dx-datagrid-headers, 
+.dx-custom-styled .dx-datagrid-borders > .dx-datagrid-filter-panel, 
+.dx-custom-styled .dx-datagrid-borders > .dx-datagrid-rowsview {
+  border: none;
+}
+
+/* ================================================================
+   GLOBAL DEVEXTREME FIXED COLUMN OVERRIDES
+   These rules guarantee that sticky columns have an opaque background.
+   ================================================================ */
+.dx-datagrid .dx-row > td.dx-command-select,
+.dx-datagrid .dx-row > td.dx-datagrid-fixed,
+.dx-datagrid-content-fixed .dx-row > td {
+  background-color: #ffffff !important;
+  z-index: 2 !important;
+}
+
+/* Alternating row fixed column background */
+.dx-datagrid .dx-row.dx-row-alt > td.dx-command-select,
+.dx-datagrid .dx-row.dx-row-alt > td.dx-datagrid-fixed,
+.dx-datagrid-content-fixed .dx-row.dx-row-alt > td {
+  background-color: #fafafa !important;
+}
+
+/* Header fixed column background */
+.dx-datagrid .dx-header-row > td.dx-command-select,
+.dx-datagrid .dx-header-row > td.dx-datagrid-fixed,
+.dx-datagrid-headers .dx-datagrid-content-fixed .dx-header-row > td {
+  background: linear-gradient(var(--primary-color-light, #fdf4f7), var(--primary-color-light, #fdf4f7)), #fff !important;
+}
+
+/* Hover row fixed column background */
+.dx-datagrid .dx-row.dx-state-hover > td.dx-command-select,
+.dx-datagrid .dx-row.dx-state-hover > td.dx-datagrid-fixed,
+.dx-datagrid-content-fixed .dx-row.dx-state-hover > td {
+  background-color: #f9f9f9 !important;
+}
+
+/* Selected row fixed column background */
+/* .dx-datagrid .dx-row.dx-selection > td.dx-command-select,
+.dx-datagrid .dx-row.dx-selection > td.dx-datagrid-fixed,
+.dx-datagrid-content-fixed .dx-row.dx-selection > td {
+  background: linear-gradient(var(--primary-color-light, #fdf4f7), var(--primary-color-light, #fdf4f7)), #fff !important;
+} */

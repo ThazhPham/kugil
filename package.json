@@ -12,6 +12,7 @@
   "dependencies": {
     "axios": "^1.16.1",
     "devextreme": "^25.2.7",
+    "devextreme-react": "^25.2.7",
     "dropdown": "^0.2.0",
     "i18next": "^26.3.0",
     "i18next-browser-languagedetector": "^8.2.1",

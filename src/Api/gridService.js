@@ -31,8 +31,8 @@ export async function fetchGridData(signature, menuCd, options = {}) {
       page,
       perPage,
       MenuCd: menuCd,
-      filtering,
-      sortings,
+      filtering: filtering?.length > 0 ? filtering : null,
+      sortings: sortings?.length > 0 ? sortings : null,
     },
     {
       headers: {

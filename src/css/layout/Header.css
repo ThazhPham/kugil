@@ -190,7 +190,7 @@
   white-space: nowrap;
   transition: background 0.15s;
 }
-.header-logout-btn:hover { background: var(--accent-blue-hover); }
+/* .header-logout-btn:hover { background: var(--accent-blue-hover); } */
 
 .header-user__menu { position: absolute; top: calc(100% + 12px); right: 0; background: #fff; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 220px; padding: 8px 0; z-index: 1000; border: 1px solid #eee; }
 .header-user__menu-item { display: flex; align-items: center; gap: 12px; padding: 10px 20px; font-size: 14px; color: #333; transition: background 0.2s; }
