@@ -80,7 +80,7 @@ const DxDataGrid = forwardRef(({
                     ref={gridRef}
                     height={height}
                     dataSource={dataSource}
-                    keyExpr={!fetchData ? keyExpr : undefined} // CustomStore holds the key
+                    keyExpr={(row) => (row && row._rowId) ? row._rowId : row?.[keyExpr]}
                     showBorders={showBorders}
                     columnAutoWidth={columnAutoWidth}
                     rowAlternationEnabled={rowAlternationEnabled}

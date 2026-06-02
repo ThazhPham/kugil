@@ -58,7 +58,7 @@ export const useDxGridRemote = ({
         if (!fetchData) return data;
         
         return new CustomStore({
-            key: keyExpr,
+            key: (item) => item?._rowId ?? item?.[keyExpr],
             load: async (loadOptions) => {
                 try {
                     const take = loadOptions.take || perPage;

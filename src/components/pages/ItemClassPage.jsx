@@ -5,8 +5,9 @@ import ItemPageLayout from "../common/ItemPageDataGrid.jsx";
 import DxDataGrid from "../common/DxDataGrid";
 import "../../css/ItemPage.css";
 import "../../css/DataGrid.css";
-import { Selection, Editing } from "devextreme-react/data-grid";
+import { Selection, Editing, Icons } from "devextreme-react/data-grid";
 import { EditIcon } from "../common/Icons";
+import { Text } from "devextreme-react/cjs/circular-gauge.js";
 
 export default function ItemClassPage() {
   const { translate } = useAutoI18n();
@@ -15,6 +16,7 @@ export default function ItemClassPage() {
   const [filterValues, setFilterValues] = useState({});
   const [appliedFilters, setAppliedFilters] = useState({});
   const [isFilterPopupOpen, setIsFilterPopupOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const filterFields = useMemo(() => [
     { name: "Code",  placeholder: translate("Code"),       type: "text", filterType: translate("Contains") },
@@ -28,15 +30,17 @@ export default function ItemClassPage() {
   const handleSearch = () => {
     setAppliedFilters(filterValues);
     setIsFilterPopupOpen(false);
-    gridRef.current?.instance().refresh();
+    if (!isEditing) gridRef.current?.instance().refresh();
   };
 
   const handleClearFilter = () => {
     setFilterValues({});
     setAppliedFilters({});
     setIsFilterPopupOpen(false);
-    gridRef.current?.instance().clearFilter();
-    gridRef.current?.instance().refresh();
+    if (!isEditing) {
+      gridRef.current?.instance().clearFilter();
+      gridRef.current?.instance().refresh();
+    }
   };
 
   const handleSave = () => {
@@ -59,14 +63,16 @@ export default function ItemClassPage() {
       // Chuyển đổi e.changes sang mảng các object phẳng (phù hợp với backend)
       const dataToSave = e.changes.map((change, index) => {
         if (change.type === "insert") {
+          // remove temporary _rowId before sending to backend
+          const { _rowId, ...rest } = change.data || {};
           return {
-            ...change.data,
-            UseYN: change.data.UseYN ?? true,
+            ...rest,
+            UseYN: rest.UseYN ?? true,
             _rowIndex: index
           };
         } else if (change.type === "update") {
           // Lấy dòng dữ liệu gốc từ grid và gộp với dữ liệu mới thay đổi
-          const original = gridItems.find(item => item.Code === change.key) || {};
+          const original = gridItems.find(item => item.Code === change.key || item._rowId === change.key) || {};
           return {
             ...original,
             ...change.data,
@@ -92,15 +98,13 @@ export default function ItemClassPage() {
     }
   }, [translate]);
 
-  const handleMultipleRows = (count) => {
-    const grid = gridRef.current?.instance();
-    if (!grid) return;
-
-    for (let i = 0; i < count; i++) {
-      grid.addRow();
-    }
+  const handleAddRow = () => {
+    gridRef.current?.instance().addRow();
   };
-  const handleCancel = () => gridRef.current?.instance().cancelEditData();
+  const handleCancel = () => {
+    gridRef.current?.instance().cancelEditData();
+    setIsEditing(false);
+  };
 
   /* ── columns ── */
   const COLUMNS = useMemo(() => [
@@ -113,8 +117,16 @@ export default function ItemClassPage() {
       sortOrder: "desc",
       alignment: "center",
       validationRules: [{ type: "required" }],
-      allowEditing: ({ addRow }) => {
-        addRow?.isnewRow
+      allowEditing: (options) => options?.row?.isNewRow === true,
+      editorOptions: {
+        valueChangeEvent: 'input',
+        acceptCustomValue: true,
+        inputAttr: {
+          autoComplete: 'off',
+          autoCorrect: 'off',
+          autoCapitalize: 'off',
+          spellCheck: 'false'
+        }
       },
     },
     { 
@@ -124,21 +136,26 @@ export default function ItemClassPage() {
       dataType: "string",
       validationRules: [{ type: "required" }]
     },
-    { dataField: "UseYN", caption: translate("Active"),     width: 150,    dataType: "boolean", alignment: "center" },
-    { dataField: "_action", caption: translate("Actions"),  width: 100,    allowFiltering: false,
+    { dataField: "UseYN", caption: translate("Active"),     
+      width: 150,    
+      dataType: "boolean", 
+      alignment: "center", 
+      allowEditing: true, isSelected: false 
+    },
+    {
+      dataField: "_action",
+      caption: translate("Actions"),
+      width: 100,
+      allowFiltering: false,
+      allowEditing: false, // Ngăn DevExtreme tự động đưa ô này vào chế độ nhập liệu
       alignment: "center",
-      cellRender: ({data, rowIndex}) => {
-        return ( 
-        <button
-          className="btn-grid-icon"
-          title={translate("Edit")}
-          onClick={() => { gridRef.current?.instance().editRow(rowIndex); }}
-        >
-           <EditIcon />
-        </button>
-        )
-      },
-     },
+      type: "buttons",
+      buttons: [
+        "edit",
+        Icons
+       // Sử dụng nút sửa mặc định của DevExtreme
+      ]
+    }
   ], [translate]);
 
   /* ── remote fetch ── */
@@ -164,7 +181,7 @@ export default function ItemClassPage() {
       <button
         className="item-action-btn"
         title={translate("Add")}
-        onClick={() => handleMultipleRows(1)}
+        onClick={handleAddRow}
       >
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
@@ -221,21 +238,27 @@ export default function ItemClassPage() {
         keyExpr="Code"
         height="100%"
         
+        
         onInitNewRow={(e) => {
+          e.data._rowId = `tmp_${Date.now()}_${Math.random().toString(36).slice(2,9)}`;
           e.data.Code = "";
           e.data.Name = "";
+          e.data.UseYN = true;
         }}
         onSaving={handleSaving}
+        onEditorPrepared={(e) => { if (e?.row?.rowType === 'data') setIsEditing(true); }}
+        onSaved={() => setIsEditing(false)}
       >
         
         <Selection mode="multiple" showCheckBoxesMode="always" />
         <Editing
-          mode="batch"
+          mode="row"
+          useIcons={true}
           allowAdding={false}
           allowUpdating={true}
           allowDeleting={false}
           newRowPosition="first"
-          startEditAction="dblClick"
+          startEditAction="click"
         />
       </DxDataGrid>
     </ItemPageLayout>
