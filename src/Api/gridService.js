@@ -83,3 +83,47 @@ export async function saveGridData(signature, menuCd, data) {
 
   return res.data;
 }
+
+export async function addGridData(signature, menuCd, data) {
+  const token = localStorage.getItem("token");
+
+  const res = await axios.post(
+    `${API_BASE}/Masterdata/DataService/Update`,
+    {
+      signature,
+      functionCode: "ADD", // <-- Backend thường cần functionCode để biết chạy tiến trình nào
+      MenuCd: menuCd,
+      Data: data
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return res.data;
+}
+
+export async function updateGridData(signature, menuCd, data) {
+  const token = localStorage.getItem("token");
+
+  const res = await axios.post(
+    `${API_BASE}/Masterdata/DataService/Update`,
+    {
+      signature,
+      functionCode: "UPDATE",
+      MenuCd: menuCd,
+      Data: data
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return res.data;
+}

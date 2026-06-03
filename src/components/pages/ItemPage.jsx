@@ -339,6 +339,12 @@ export default function ItemPage() {
             externalFilters={externalFilters}
             keyExpr="ItemCode"
             height="100%"
+            onRowDblClick={(e) => {
+              if (e.rowType === "data") {
+                setEditingRow(e.data);
+                setIsCreateOpen(true);
+              }
+            }}
           >
             <Selection mode="multiple" showCheckBoxesMode="always" />
           </DxDataGrid>
