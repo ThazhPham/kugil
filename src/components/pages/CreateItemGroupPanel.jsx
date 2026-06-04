@@ -6,7 +6,7 @@ import { useAutoI18n } from "../../i18n/useAutoI18n";
 import DxDataGrid from "../common/DxDataGrid";
 import { Selection } from "devextreme-react/data-grid";
 import PopupItemClass from "./PopupItemClass";
-import { fetchGridData } from "../../Api/gridService";
+import { fetchGridData, deleteDataGrid } from "../../Api/gridService";
 import { BackgroundColor } from 'devextreme-react/cjs/circular-gauge';
 
 export default function CreateItemGroupPanel({ onClose, onSave, isExpanded, onToggleExpand, initialData, mode = 'create' }) {
@@ -91,8 +91,48 @@ export default function CreateItemGroupPanel({ onClose, onSave, isExpanded, onTo
   const handleDeleteClass = (e) => {
     e.preventDefault();
     const selectedRowKeys = detailGridRef.current?.instance().getSelectedRowKeys();
+    
     if (selectedRowKeys && selectedRowKeys.length > 0) {
-      setGridDetails(gridDetails.filter(row => !selectedRowKeys.includes(row.Code)));
+      // 1. Phải ném full form (Master) lên thì API UPDATE mới không báo lỗi
+      const deletePayload = {
+        ...form,
+        Number: Number(form.Number) || 0,
+        GroupLevel: Number(form.GroupLevel) || 1,
+        OrderNum: Number(form.OrderNum) || 1,
+        Details: gridDetails.map(d => {
+          // Với những dòng bị xóa, giữ nguyên các thuộc tính cũ và gán cờ Xóa
+          if (selectedRowKeys.includes(d.Code)) {
+            return {
+              ...d,
+              ItemClass: d.ItemClass || d.Code,
+              RowState: "D",
+              RowStatus: "D",
+              IsDeleted: true,
+              UseYN: false
+            };
+          }
+          // Với những dòng bình thường
+          return {
+            ...d,
+            ItemClass: d.ItemClass || d.Code
+          };
+        })
+      };
+
+      // 2. Gọi API
+      deleteDataGrid("ItemGroup", "B012", deletePayload)
+        .then((res) => {
+          if (res && res.Success !== false) {
+            setGridDetails(gridDetails.filter(row => !selectedRowKeys.includes(row.Code)));
+            // alert(translate("Đã xóa trên hệ thống!"));
+          }// } else {
+          //   alert(translate("Lỗi khi xóa: ") + (res?.ReturnMess || ""));
+          // }
+        })
+        .catch(err => {
+          console.error(err);
+          alert(translate("Lỗi kết nối khi xóa!"));
+        });
     } else {
       alert(translate("Vui lòng chọn ít nhất 1 dòng để xóa."));
     }

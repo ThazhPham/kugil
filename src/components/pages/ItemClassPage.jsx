@@ -45,14 +45,85 @@ export default function ItemClassPage() {
 
   const handleSave = () => {
     const grid = gridRef.current?.instance();
-    if (grid) {
-      const controller = grid.getController("validating");
-      if (controller && controller.validate) {
-        controller.validate(true);
+    if (!grid) return;
+
+    // 1. Chạy validate của DevExtreme để nó tự động bôi đỏ các ô rỗng
+    const controller = grid.getController("validating");
+    if (controller && controller.validate) {
+      controller.validate(true);
+    }
+
+    // 2. Chỉ tìm ô lỗi để focus chuột (Không dùng vòng lặp for)
+    const changes = grid.option("editing.changes");
+
+    if (changes && changes.length > 0) {
+      // --- ĐIỀU KIỆN 1 (Ưu tiên): Kiểm tra dòng mà con trỏ chuột vừa thao tác (dòng cuối mảng changes) ---
+      const lastChange = changes[changes.length - 1];
+      let activeErrorRow = null;
+
+      if (lastChange && (lastChange.type === "insert" || lastChange.type === "update")) {
+          const c = lastChange.data.Code;
+          const n = lastChange.data.Name;
+          const isCodeMissing = lastChange.type === "insert" ? (!c || c.trim() === "") : (c !== undefined && (!c || c.trim() === ""));
+          const isNameMissing = lastChange.type === "insert" ? (!n || n.trim() === "") : (n !== undefined && (!n || n.trim() === ""));
+          
+          if (isCodeMissing || isNameMissing) {
+              activeErrorRow = lastChange; // Dòng hiện tại bị lỗi, ưu tiên bắt nó trước
+          }
       }
+
+      // --- ĐIỀU KIỆN 2 (Dự phòng): Nếu dòng hiện tại không lỗi, dùng 'find' quét các dòng khác từ trên xuống ---
+      const errorChange = activeErrorRow || changes.find(change => {
+        if (change.type !== "insert" && change.type !== "update") return false;
+        
+        const code = change.data.Code;
+        const name = change.data.Name;
+        
+        if (change.type === "insert") {
+            return (!code || code.trim() === "") || (!name || name.trim() === "");
+        }
+        return (code !== undefined && (!code || code.trim() === "")) || 
+               (name !== undefined && (!name || name.trim() === ""));
+      });
+
+      // --- XỬ LÝ FOCUS VÀO CỘT LỖI ---
+      if (errorChange) {
+          // Ưu tiên ngang: Check Code trước, xong rồi mới đến Name (ClassName)
+          let missingField = "Code"; 
+          const code = errorChange.data.Code;
+          
+          if (errorChange.type === "insert") {
+              if (code && code.trim() !== "") missingField = "Name";
+          } else {
+              if (code !== undefined && code.trim() !== "") missingField = "Name";
+          }
+
+          const rowIndex = grid.getRowIndexByKey(errorChange.key);
+          if (rowIndex >= 0) {
+              // --- Áp dụng "Cách 3": Bới móc DOM HTML để ép nháy chuột 100% ---
+              const cellElement = grid.getCellElement(rowIndex, missingField);
+              if (cellElement) {
+                  const inputElement = cellElement.querySelector('input, textarea');
+                  if (inputElement) {
+                      inputElement.focus();
+                  } else {
+                      grid.editCell(rowIndex, missingField); // Dự phòng nếu chưa vẽ kịp thẻ input
+                  }
+              } else {
+                  grid.editCell(rowIndex, missingField);
+              }
+          }
+          
+          return; // Khóa Save lại, chừng nào điền xong mới cho đi tiếp
+      }
+    }
+
+    // 3. Nếu không lỗi mới lưu
+    if (!hasError) {
       grid.saveEditData();
     }
   };
+
 
   const handleSaving = useCallback((e) => {
     e.cancel = true; // Ngăn chặn DevExtreme tự động gọi custom store mặc định

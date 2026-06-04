@@ -151,4 +151,25 @@ export async function updateGridData(signature, menuCd, data) {
 
   return res.data;
 }
+export async function deleteDataGrid(signature, menuCd, data) {
+  const token = localStorage.getItem("token");
+
+  const res = await axios.post(
+    `${API_BASE}/Masterdata/DataService/Update`,
+    {
+      signature,
+      functionCode: "UPDATE",
+      MenuCd: menuCd,
+      Data: data
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return res.data;
+}
 

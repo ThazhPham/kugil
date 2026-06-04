@@ -233,12 +233,10 @@ export default function ItemGroupPage() {
       initialData={editingRow}
       mode={editingRow ? 'edit' : 'create'}
       onClose={() => {
-        if (editingRow === null) {
-          setIsCreateOpen(false);
-          setIsCreateExpanded(false);   
-        }
+        setIsCreateOpen(false);
+        setIsCreateExpanded(false);   
         setEditingRow(null);  
-       }}
+      }}
       onSave={handleSavePanel} 
       isExpanded={isCreateExpanded}
       onToggleExpand={() => setIsCreateExpanded(!isCreateExpanded)}
