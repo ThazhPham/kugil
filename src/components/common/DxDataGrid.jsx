@@ -33,6 +33,9 @@ const DxDataGrid = forwardRef(({
     columnAutoWidth = true,
     rowAlternationEnabled = true,
     hoverStateEnabled = true,
+    showPagination = true,
+    showFilterRow = true,
+    disableRowClickSelection = false,
 
     children,
     ...restProps
@@ -41,7 +44,7 @@ const DxDataGrid = forwardRef(({
     const internalRef = useRef(null);
     const gridRef = ref || internalRef;
     const isRemote = !!fetchData;
-    const { onToolbarPreparing, ...otherProps } = restProps;
+    const { onToolbarPreparing, onRowClick, ...otherProps } = restProps;
 
     const handleToolbarPreparing = (e) => {
         if (e.toolbarOptions?.items) {
@@ -80,7 +83,7 @@ const DxDataGrid = forwardRef(({
                     ref={gridRef}
                     height={height}
                     dataSource={dataSource}
-                    keyExpr={(row) => (row && row._rowId) ? row._rowId : row?.[keyExpr]}
+                    keyExpr={keyExpr}
                     showBorders={showBorders}
                     columnAutoWidth={columnAutoWidth}
                     rowAlternationEnabled={rowAlternationEnabled}
@@ -90,8 +93,33 @@ const DxDataGrid = forwardRef(({
                     onOptionChanged={handleOptionChanged}
                     onToolbarPreparing={handleToolbarPreparing}
                     {...otherProps}
+                    onRowClick={(e) => {
+                        // Call any external onRowClick handler first
+                        if (onRowClick) {
+                            onRowClick(e);
+                        }
+                        
+                        if (disableRowClickSelection) return;
+
+                        if (e.rowType === "data") {
+                            // Loại trừ trường hợp user bấm trực tiếp vào ô checkbox (để tránh lỗi xung đột đánh tick 2 lần)
+                            if (e.event.target.closest(".dx-command-select")) return;
+                            if (e.event.target.closest(".dx-select-checkbox")) return;
+
+                            const grid = e.component;
+                            const rowKey = e.key;
+                            
+                            const selectedKeys = grid.getSelectedRowKeys();
+
+                            if (selectedKeys.includes(rowKey)) {
+                                grid.deselectRows([rowKey]); // Đã chọn -> Bỏ chọn
+                            } else {
+                                grid.selectRows([rowKey], true); // Chưa chọn -> Tick chọn
+                            }
+                        }
+                    }}
                 >
-                    <FilterRow visible={true} applyFilter="auto" showOperationChooser={false} />
+                    {showFilterRow && <FilterRow visible={true} applyFilter="auto" showOperationChooser={false} />}
                     <Scrolling mode="standard" showScrollbar="always" />
                     <SearchPanel visible={false} />
                     <Paging pageSize={perPage} pageIndex={page - 1} />
@@ -112,51 +140,53 @@ const DxDataGrid = forwardRef(({
             </div>
 
             {/* Custom Pagination Footer */}
-            <div className="data-grid-pagination">
-                <div className="data-grid-pagination__sizes">
-                    {PAGE_SIZES.map((size) => (
-                        <button
-                            key={size}
-                            className={`data-grid-pagination__size ${perPage === size ? "active" : ""}`}
-                            onClick={() => changePerPage(size)}
-                        >
-                            {size === 99999 ? translate("All") : size}
-                        </button>
-                    ))}
-                </div>
-
-                <div className="data-grid-pagination__info">
-                    {translate("page")} #{page}, {translate("total")}: {totalPages} ({totalRows.toLocaleString()} {translate("items")})
-                </div>
-
-                <div className="data-grid-pagination__pages">
-                    <button
-                        className="data-grid-pagination__nav"
-                        disabled={page <= 1}
-                        onClick={() => changePage(Math.max(1, page - 1))}
-                    >‹</button>
-
-                    {getPageNumbers().map((p, i) =>
-                        p === "..." ? (
-                            <span key={`dots-${i}`} className="data-grid-pagination__dots">…</span>
-                        ) : (
+            {showPagination && (
+                <div className="data-grid-pagination">
+                    <div className="data-grid-pagination__sizes">
+                        {PAGE_SIZES.map((size) => (
                             <button
-                                key={p}
-                                className={`data-grid-pagination__page ${page === p ? "active" : ""}`}
-                                onClick={() => changePage(p)}
+                                key={size}
+                                className={`data-grid-pagination__size ${perPage === size ? "active" : ""}`}
+                                onClick={() => changePerPage(size)}
                             >
-                                {p}
+                                {size === 99999 ? translate("All") : size}
                             </button>
-                        )
-                    )}
+                        ))}
+                    </div>
 
-                    <button
-                        className="data-grid-pagination__nav"
-                        disabled={page >= totalPages}
-                        onClick={() => changePage(Math.min(totalPages, page + 1))}
-                    >›</button>
+                    <div className="data-grid-pagination__info">
+                        {translate("page")} #{page}, {translate("total")}: {totalPages} ({totalRows.toLocaleString()} {translate("items")})
+                    </div>
+
+                    <div className="data-grid-pagination__pages">
+                        <button
+                            className="data-grid-pagination__nav"
+                            disabled={page <= 1}
+                            onClick={() => changePage(Math.max(1, page - 1))}
+                        >‹</button>
+
+                        {getPageNumbers().map((p, i) =>
+                            p === "..." ? (
+                                <span key={`dots-${i}`} className="data-grid-pagination__dots">…</span>
+                            ) : (
+                                <button
+                                    key={p}
+                                    className={`data-grid-pagination__page ${page === p ? "active" : ""}`}
+                                    onClick={() => changePage(p)}
+                                >
+                                    {p}
+                                </button>
+                            )
+                        )}
+
+                        <button
+                            className="data-grid-pagination__nav"
+                            disabled={page >= totalPages}
+                            onClick={() => changePage(Math.min(totalPages, page + 1))}
+                        >›</button>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 });

@@ -3,6 +3,8 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import ItemPage from "../pages/ItemPage";
 import ItemClassPage from "../pages/ItemClassPage";
+import ItemGroupPage from "../pages/ItemGroupPage";
+import PlantPage from "../pages/PlantPage";
 import "../../css/layout/MainLayout.css";
 
 /**
@@ -17,7 +19,9 @@ import "../../css/layout/MainLayout.css";
 /* ── Map menuCd → component ──────────────────────────────── */
 const PAGE_MAP = {
   B009: ItemPage,   // Item
+  B012: ItemGroupPage, // Item Group
   B013: ItemClassPage, // Item Class
+  B003: PlantPage,  // Plant
 };
 
 export default function MainLayout({ menuItems, menuLoading, menuError, children }) {

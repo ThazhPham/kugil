@@ -13,6 +13,8 @@ export default function ItemPageLayout({
   onFilterChange,
   extra = null,
   children,
+  rightPanel = null,
+  isRightPanelExpanded = false
 }) {
   return (
     <div className="item-page dx-custom-styled">
@@ -61,8 +63,6 @@ export default function ItemPageLayout({
 
           {/* extra buttons (Add, Cancel, Save, ...) */}
           {extra}
-
-          {/* Save */}
           
           {/* Clear / Delete */}
           <button className="item-action-btn" title="Clear Filter" onClick={onClearFilter}>
@@ -88,6 +88,12 @@ export default function ItemPageLayout({
           {children}
         </div>
       </div>
+
+      {rightPanel && (
+        <div className={`item-create-section ${isRightPanelExpanded ? 'full' : 'split'}`}>
+          {rightPanel}
+        </div>
+      )}
     </div>
   );
 }
