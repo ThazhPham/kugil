@@ -59,7 +59,64 @@ export default function ItemClassPage() {
 
     if (e.changes.length) {
       const gridItems = e.component.getDataSource().items();
+
+            // ==========================================
+      // 1. KIỂM TRA TRÙNG LẶP CẢ CODE LẪN NAME
+      // ==========================================
+      let isDuplicate = false;
+      let duplicatedMessage = "";
+
+      for (let change of e.changes) {
+        if (change.type === "insert" || change.type === "update") {
+          
+          // Lấy dữ liệu gốc của dòng này (nếu là đang update)
+          const original = gridItems.find(item => item.Code === change.key || item._rowId === change.key) || {};
+          
       
+
+          // Kết hợp dữ liệu gốc và dữ liệu nháp: Nếu ô nào vừa bị gõ sửa thì lấy dữ liệu mới, không thì lấy dữ liệu cũ
+          const codeToCheck = change.data.Code !== undefined ? change.data.Code : original.Code;
+          const nameToCheck = change.data.Name !== undefined ? change.data.Name : original.Name;
+          
+          // --- Kiểm tra trùng Mã (Code) ---
+          if (codeToCheck) {
+            const foundCode = gridItems.find(item => 
+              item.Code === codeToCheck && 
+              item.Code !== change.key && 
+              item._rowId !== change.key // Bỏ qua chính dòng đang sửa
+            );
+            
+            if (foundCode) {
+              isDuplicate = true;
+              duplicatedMessage = `Mã Code '${codeToCheck}' đã tồn tại trong bảng!`;
+              break; // Thoát vòng lặp
+            }
+          }
+
+          // --- Kiểm tra trùng Tên (Name) ---
+          if (nameToCheck) {
+            const foundName = gridItems.find(item => 
+              item.Name === nameToCheck && 
+              item.Code !== change.key &&
+              item._rowId !== change.key
+            );
+            
+            if (foundName) {
+              isDuplicate = true;
+              duplicatedMessage = `Tên Class '${nameToCheck}' đã tồn tại trong bảng!`;
+              break; // Thoát vòng lặp
+            }
+          }
+        }
+      }
+
+      // Nếu phát hiện trùng, thông báo và dừng lưu
+      if (isDuplicate) {
+        alert(translate("Lỗi: ") + translate(duplicatedMessage));
+        return; // Dừng hẳn hàm handleSaving
+      }
+      // ==========================================
+
       // Chuyển đổi e.changes sang mảng các object phẳng (phù hợp với backend)
       const dataToSave = e.changes.map((change, index) => {
         if (change.type === "insert") {
@@ -139,21 +196,43 @@ export default function ItemClassPage() {
     { dataField: "UseYN", caption: translate("Active"),     
       width: 150,    
       dataType: "boolean", 
-      alignment: "center", 
+      alignment: "center",
       allowEditing: true, isSelected: false 
     },
     {
       dataField: "_action",
       caption: translate("Actions"),
       width: 100,
-      allowFiltering: false,
+      allowFiltering: true,
       allowEditing: false, // Ngăn DevExtreme tự động đưa ô này vào chế độ nhập liệu
       alignment: "center",
       type: "buttons",
       buttons: [
         "edit",
-        Icons
-       // Sử dụng nút sửa mặc định của DevExtreme
+        {
+          hint: translate("Save"),
+          icon: "save",
+          visible: (e) => {
+            return e.row?.isEditing === true &&  e.row?.isNewRow !== true;
+          },
+        onClick: (e) => {
+          gridRef.current?.instance().saveEditData();
+        }
+        },
+        {
+          hint: translate("Cancel/Remove"),
+          icon: "revert",
+          visible: (e) => {
+            return e.row?.isNewRow === true || e.row?.isEditing === true   
+          },
+          onClick: (e) => {
+            if (e.row?.isNewRow === true) {
+              gridRef.current?.instance().deleteRow(e.row.rowIndex);
+            } else if (e.row?.isEditing === true) {
+              gridRef.current?.instance().cancelEditData();
+            }
+          }
+        }
       ]
     }
   ], [translate]);

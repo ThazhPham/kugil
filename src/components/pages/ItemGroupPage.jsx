@@ -7,6 +7,7 @@ import CreateItemGroupPanel from "./CreateItemGroupPanel";
 import "../../css/ItemPage.css";
 import "../../css/DataGrid.css";
 import { Selection, Editing } from "devextreme-react/data-grid";
+import { toast } from 'react-hot-toast'; // Hoặc thư viện toast mà project bạn dùng
 
 
 export default function ItemGroupPage() {
@@ -61,10 +62,12 @@ export default function ItemGroupPage() {
       updateGridData("ItemGroup", "B012", payloadFromPanel)
         .then((res) => {
           if (res && res.Success !== false) {
-             setIsCreateOpen(false);
-             setIsCreateExpanded(false);
-             setEditingRow(null);
+             // Giữ nguyên panel, cập nhật lại editingRow để đồng bộ data mới nhất
+             setEditingRow(payloadFromPanel);
              gridRef.current?.instance().refresh(); 
+             if (res.Success || res.isSuccessed) {
+              toast.success("Đã lưu thay đổi!");
+             }
           } else {
              alert(translate("Lỗi khi cập nhật dữ liệu: ") + (res?.ReturnMess || "Unknown error"));
           }
@@ -229,7 +232,13 @@ export default function ItemGroupPage() {
     <CreateItemGroupPanel
       initialData={editingRow}
       mode={editingRow ? 'edit' : 'create'}
-      onClose={() => { setIsCreateOpen(false); setIsCreateExpanded(false); setEditingRow(null); }}
+      onClose={() => {
+        if (editingRow === null) {
+          setIsCreateOpen(false);
+          setIsCreateExpanded(false);   
+        }
+        setEditingRow(null);  
+       }}
       onSave={handleSavePanel} 
       isExpanded={isCreateExpanded}
       onToggleExpand={() => setIsCreateExpanded(!isCreateExpanded)}
