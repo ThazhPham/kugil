@@ -252,7 +252,7 @@ export default function ItemClassPage() {
         
         <Selection mode="multiple" showCheckBoxesMode="always" />
         <Editing
-          mode="row"
+          mode="batch"
           useIcons={true}
           allowAdding={false}
           allowUpdating={true}

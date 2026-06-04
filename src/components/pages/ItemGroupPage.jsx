@@ -8,6 +8,7 @@ import "../../css/ItemPage.css";
 import "../../css/DataGrid.css";
 import { Selection, Editing } from "devextreme-react/data-grid";
 
+
 export default function ItemGroupPage() {
   const { translate } = useAutoI18n();
   const gridRef = useRef(null);
@@ -52,7 +53,7 @@ export default function ItemGroupPage() {
     );
     
     if (isDuplicate) {
-      alert(translate("Mã Group Code này đã tồn tại, vui lòng nhập mã khác!"))|| alert(translate("Mã Group Number này đã tồn tại, vui lòng nhập số khác!"));
+      alert(translate("Mã Group Code này đã tồn tại, vui lòng nhập mã khác!!!!"))|| alert(translate("Mã Group Number này đã tồn tại, vui lòng nhập số khác!"));
       return;
     }
 
@@ -260,7 +261,7 @@ export default function ItemGroupPage() {
         columns={COLUMNS}
         fetchData={handleFetchData}
         externalFilters={externalFilters}
-        keyExpr="GroupCode"
+        keyExpr="Number" // Sử dụng cột duy nhất làm Key để tránh lỗi dính selection khi GroupCode trùng
         height="100%"
         onRowDblClick={(e) => {
           if (e.rowType === "data") {
@@ -277,6 +278,7 @@ export default function ItemGroupPage() {
           allowDeleting={false}
           newRowPosition="first"
           doubleClickToEdit={false}
+
         />
       </DxDataGrid>
     </ItemPageLayout>

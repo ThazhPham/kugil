@@ -35,6 +35,7 @@ const DxDataGrid = forwardRef(({
     hoverStateEnabled = true,
     showPagination = true,
     showFilterRow = true,
+    disableRowClickSelection = false,
 
     children,
     ...restProps
@@ -43,7 +44,7 @@ const DxDataGrid = forwardRef(({
     const internalRef = useRef(null);
     const gridRef = ref || internalRef;
     const isRemote = !!fetchData;
-    const { onToolbarPreparing, ...otherProps } = restProps;
+    const { onToolbarPreparing, onRowClick, ...otherProps } = restProps;
 
     const handleToolbarPreparing = (e) => {
         if (e.toolbarOptions?.items) {
@@ -92,24 +93,31 @@ const DxDataGrid = forwardRef(({
                     onOptionChanged={handleOptionChanged}
                     onToolbarPreparing={handleToolbarPreparing}
                     {...otherProps}
-                            onRowClick={(e) => {
-                            if (e.rowType === "data") {
-                                // Loại trừ trường hợp user bấm trực tiếp vào ô checkbox (để tránh lỗi xung đột đánh tick 2 lần)
-                                if (e.event.target.closest(".dx-command-select")) return;
-                                if (e.event.target.closest(".dx-select-checkbox")) return;
+                    onRowClick={(e) => {
+                        // Call any external onRowClick handler first
+                        if (onRowClick) {
+                            onRowClick(e);
+                        }
+                        
+                        if (disableRowClickSelection) return;
 
-                                const grid = e.component;
-                                const rowKey = e.key;
-                                
-                                const selectedKeys = grid.getSelectedRowKeys();
+                        if (e.rowType === "data") {
+                            // Loại trừ trường hợp user bấm trực tiếp vào ô checkbox (để tránh lỗi xung đột đánh tick 2 lần)
+                            if (e.event.target.closest(".dx-command-select")) return;
+                            if (e.event.target.closest(".dx-select-checkbox")) return;
 
-                                if (selectedKeys.includes(rowKey)) {
+                            const grid = e.component;
+                            const rowKey = e.key;
+                            
+                            const selectedKeys = grid.getSelectedRowKeys();
+
+                            if (selectedKeys.includes(rowKey)) {
                                 grid.deselectRows([rowKey]); // Đã chọn -> Bỏ chọn
-                                } else {
+                            } else {
                                 grid.selectRows([rowKey], true); // Chưa chọn -> Tick chọn
-                                }
                             }
-                            }}
+                        }
+                    }}
                 >
                     {showFilterRow && <FilterRow visible={true} applyFilter="auto" showOperationChooser={false} />}
                     <Scrolling mode="standard" showScrollbar="always" />
