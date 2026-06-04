@@ -7,6 +7,7 @@ import DxDataGrid from "../common/DxDataGrid";
 import { Selection } from "devextreme-react/data-grid";
 import PopupItemClass from "./PopupItemClass";
 import { fetchGridData } from "../../Api/gridService";
+import { BackgroundColor } from 'devextreme-react/cjs/circular-gauge';
 
 export default function CreateItemGroupPanel({ onClose, onSave, isExpanded, onToggleExpand, initialData, mode = 'create' }) {
   const { translate } = useAutoI18n();
@@ -97,24 +98,36 @@ export default function CreateItemGroupPanel({ onClose, onSave, isExpanded, onTo
     }
   };
 
-    const handleSaveClick = () => {
+  const handleSaveClick = () => {
     const newErrors = {};
+    const numberValue = Number(form.Number);
+    const groupLevelValue = Number(form.GroupLevel);
+    const orderNumValue = Number(form.OrderNum);
+
     if (!form.GroupCode || form.GroupCode.trim() === '') newErrors.GroupCode = true;
     if (!form.GroupName || form.GroupName.trim() === '') newErrors.GroupName = true;
+    if (form.Number === '' || Number.isNaN(numberValue)) newErrors.Number = true;
+    if (form.GroupLevel === '' || Number.isNaN(groupLevelValue) || groupLevelValue <= 0) newErrors.GroupLevel = true;
+    if (form.OrderNum === '' || Number.isNaN(orderNumValue) || orderNumValue <= 0) newErrors.OrderNum = true;
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      alert(translate("Vui lòng nhập đầy đủ các trường bắt buộc (*)"));
-      return; 
+      if (orderNumValue <= 0) {
+        alert(translate("Vui lòng không nhập số âm hoặc số 0"));
+      } else {
+        alert(translate("Vui lòng nhập đầy đủ các trường bắt buộc (*)"));
+      }
+      return;
     }
+
     setErrors({});
-  
+
     // Ép kiểu các trường rỗng về số chuẩn trước khi gửi
     const payloadToSave = {
       ...form,
-      Number: form.Number ? Number(form.Number) : 0,
-      GroupLevel: form.GroupLevel ? Number(form.GroupLevel) : 1,
-      OrderNum: form.OrderNum ? Number(form.OrderNum) : 1,
+      Number: !Number.isNaN(numberValue) ? numberValue : 0,
+      GroupLevel: !Number.isNaN(groupLevelValue) ? groupLevelValue : 1,
+      OrderNum: !Number.isNaN(orderNumValue) ? orderNumValue : 1,
       Details: gridDetails.map(d => ({
         ...d,
         ItemClass: d.ItemClass || d.Code
@@ -147,8 +160,8 @@ export default function CreateItemGroupPanel({ onClose, onSave, isExpanded, onTo
           
           <div className="form-group">
             <div className="floating-input-wrapper">
-              <input type="text" className="floating-input" style={errors.GroupNumber ? { borderColor: '#f44336' } : {}} placeholder=" " value={form.Number} onChange={(e) => handleInputChange('Number', e.target.value)}  />
-              <label className="floating-label">{translate("Group Number")}</label>
+              <input type="text" className="floating-input" style={errors.Number ? { borderColor: '#f44336' } : {}} placeholder=" " value={form.Number} onChange={(e) => handleInputChange('Number', e.target.value)} disabled={mode === 'edit'} />
+              <label className="floating-label" style={errors.Number ? { color : '#f44336'}: {}}>{translate("Group Number")} *</label>
             </div>
           </div>
           <div className="form-group">
@@ -166,14 +179,14 @@ export default function CreateItemGroupPanel({ onClose, onSave, isExpanded, onTo
 
           <div className="form-group">
             <div className="floating-input-wrapper">
-              <input type="number" className="floating-input" min="0" placeholder=" " value={form.GroupLevel} onChange={(e) => handleInputChange('GroupLevel', e.target.value)} />
-              <label className="floating-label">{translate("Level")}</label>
+              <input type="number" className="floating-input" min="0" style={errors.GroupLevel ? { borderColor: '#f44336' } : {}} placeholder=" " value={form.GroupLevel} onChange={(e) => handleInputChange('GroupLevel', e.target.value)} />
+              <label className="floating-label" style={errors.GroupLevel ? { color: '#f44336' } : {}}>{translate("Level")} *</label>
             </div>
           </div>
           <div className="form-group">
             <div className="floating-input-wrapper">
-              <input type="number" className="floating-input" min="0" placeholder=" " value={form.OrderNum} onChange={(e) => handleInputChange('OrderNum', e.target.value)} />
-              <label className="floating-label">{translate("Sort Order")}</label>
+              <input type="number" className="floating-input" min="0" style={errors.OrderNum ? { borderColor: '#f44336' } : {}} placeholder=" " value={form.OrderNum} onChange={(e) => handleInputChange('OrderNum', e.target.value)} />
+              <label className="floating-label" style={errors.OrderNum ? { color: '#f44336' } : {}}>{translate("Sort Order")} *</label>
             </div>
           </div>
           <div className="form-group create-item-group-form-group-checkbox">
