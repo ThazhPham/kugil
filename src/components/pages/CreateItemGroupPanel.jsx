@@ -92,50 +92,25 @@ export default function CreateItemGroupPanel({ onClose, onSave, isExpanded, onTo
     e.preventDefault();
     const selectedRowKeys = detailGridRef.current?.instance().getSelectedRowKeys();
     
-    if (selectedRowKeys && selectedRowKeys.length > 0) {
-      // 1. Phải ném full form (Master) lên thì API UPDATE mới không báo lỗi
-      const deletePayload = {
-        ...form,
-        Number: Number(form.Number) || 0,
-        GroupLevel: Number(form.GroupLevel) || 1,
-        OrderNum: Number(form.OrderNum) || 1,
-        Details: gridDetails.map(d => {
-          // Với những dòng bị xóa, giữ nguyên các thuộc tính cũ và gán cờ Xóa
-          if (selectedRowKeys.includes(d.Code)) {
-            return {
-              ...d,
-              ItemClass: d.ItemClass || d.Code,
-              RowState: "D",
-              RowStatus: "D",
-              IsDeleted: true,
-              UseYN: false
-            };
-          }
-          // Với những dòng bình thường
-          return {
-            ...d,
-            ItemClass: d.ItemClass || d.Code
-          };
-        })
-      };
-
-      // 2. Gọi API
-      deleteDataGrid("ItemGroup", "B012", deletePayload)
-        .then((res) => {
-          if (res && res.Success !== false) {
-            setGridDetails(gridDetails.filter(row => !selectedRowKeys.includes(row.Code)));
-            // alert(translate("Đã xóa trên hệ thống!"));
-          }// } else {
-          //   alert(translate("Lỗi khi xóa: ") + (res?.ReturnMess || ""));
-          // }
-        })
-        .catch(err => {
-          console.error(err);
-          alert(translate("Lỗi kết nối khi xóa!"));
-        });
-    } else {
+    if (!selectedRowKeys || selectedRowKeys.length === 0) {
       alert(translate("Vui lòng chọn ít nhất 1 dòng để xóa."));
+      return;
     }
+
+    // "Tạm ẩn" dòng đó bằng cách gắn cờ IsDeleted = true, RowState = "D"
+    setGridDetails(prev => prev.map(d => {
+      if (selectedRowKeys.includes(d.Code)) {
+        return {
+          ...d,
+          ItemClass: d.ItemClass || d.Code,
+          RowState: "D",
+          RowStatus: "D",
+          IsDeleted: true,
+          UseYN: false
+        };
+      }
+      return d;
+    }));
   };
 
   const handleSaveClick = () => {
@@ -300,7 +275,7 @@ export default function CreateItemGroupPanel({ onClose, onSave, isExpanded, onTo
           <div className="group-class-grid-container">
             <DxDataGrid
               ref={detailGridRef}
-              data={gridDetails}
+              data={gridDetails.filter(d => !d.IsDeleted)}
               columns={[
                 { dataField: "Code", caption: translate("Code"), alignment: "left" }
               ]}

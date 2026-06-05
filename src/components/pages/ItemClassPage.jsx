@@ -119,9 +119,7 @@ export default function ItemClassPage() {
     }
 
     // 3. Nếu không lỗi mới lưu
-    if (!hasError) {
       grid.saveEditData();
-    }
   };
 
 
