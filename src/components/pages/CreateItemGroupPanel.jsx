@@ -78,20 +78,78 @@ export default function CreateItemGroupPanel({ onClose, onSave, isExpanded, onTo
     setForm(prev => ({ ...prev, [field]: value }));
   }
 
-  const handleSelectClass = (selectedRows) => {
+    const handleEditorPreparing = (e) => {
+    if (e.type === "selection" && e.parentType === "dataRow") {
+      // Tìm xem mã này có trong gridDetails chưa (chỉ xét các dòng ĐANG ACTIVE, chưa bị xóa)
+      const isExist = gridDetails.some(d => d.Code === e.row.data.Code && !d.IsDeleted);
+      if (isExist) {
+        e.editorOptions.disabled = true;
+      }
+    }
+  };
+
+  const handleSelectionChanged = (e) => {
+    // Ngăn chặn trường hợp click vào dòng (Row Click) vượt qua checkbox
+    const newlySelectedKeys = e.currentSelectedRowKeys || [];
+    const conflictKeys = newlySelectedKeys.filter(key => 
+      gridDetails.some(d => d.Code === key && !d.IsDeleted)
+    );
+    if (conflictKeys.length > 0) {
+      e.component.deselectRows(conflictKeys);
+    }
+  };
+
+  const handleRowPrepared = (e) => {
+    if (e.rowType === "data") {
+      const isExist = gridDetails.some(d => d.Code === e.data.Code && !d.IsDeleted);
+      if (isExist) {
+        e.rowElement.style.opacity = "0.5";
+        e.rowElement.style.backgroundColor = "#f5f5f5";
+        e.rowElement.style.pointerEvents = "none"; 
+      }
+    }
+  };
+
+      const handleSelectClass = (selectedRows) => {
+    // Kiểm tra xem có dòng được chọn nào đang TRÙNG với dòng ĐANG ACTIVE không
+    const hasDuplicateActive = selectedRows.some(row => 
+      gridDetails.some(d => d.Code === row.Code && !d.IsDeleted)
+    );
+
+    if (hasDuplicateActive) {
+      alert(translate("Dữ liệu đã tồn tại, không thể thêm."));
+      return; 
+    }
+
     const newDetails = [...gridDetails];
+
     selectedRows.forEach(row => {
-      if (!newDetails.find(d => d.Code === row.Code)) {
+      const existingIndex = newDetails.findIndex(d => d.Code === row.Code);
+      if (existingIndex > -1) {
+        // Nếu dòng này đã từng bị "xóa" (IsDeleted = true), ta sẽ khôi phục lại nó thay vì add thêm (tránh lỗi duplicate key)
+        newDetails[existingIndex] = {
+          ...newDetails[existingIndex],
+          ...row, // Lấy data mới nhất từ lưới
+          RowState: newDetails[existingIndex].ID ? "U" : "I", 
+          RowStatus: newDetails[existingIndex].ID ? "U" : "I",
+          IsDeleted: false,
+          UseYN: true
+        };
+      } else {
+        // Chưa từng tồn tại thì add mới
         newDetails.push(row);
       }
     });
+
     setGridDetails(newDetails);
   };
+
+
 
   const handleDeleteClass = (e) => {
     e.preventDefault();
     const selectedRowKeys = detailGridRef.current?.instance().getSelectedRowKeys();
-    
+
     if (!selectedRowKeys || selectedRowKeys.length === 0) {
       alert(translate("Vui lòng chọn ít nhất 1 dòng để xóa."));
       return;
@@ -284,7 +342,6 @@ export default function CreateItemGroupPanel({ onClose, onSave, isExpanded, onTo
               showBorders={false}
               showFilterRow={false}
               showPagination={true}
-              
             >
               <Selection mode="multiple" showCheckBoxesMode="always" />
             </DxDataGrid>
@@ -304,7 +361,9 @@ export default function CreateItemGroupPanel({ onClose, onSave, isExpanded, onTo
         isOpen={isPopupOpen} 
         onClose={() => setIsPopupOpen(false)} 
         onSelect={handleSelectClass} 
-       
+        onEditorPreparing={handleEditorPreparing} 
+        onSelectionChanged={handleSelectionChanged}
+        onRowPrepared={handleRowPrepared}
       />
     </div>
   );

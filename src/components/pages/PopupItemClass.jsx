@@ -5,7 +5,7 @@ import DxDataGrid from "../common/DxDataGrid";
 import { Selection } from "devextreme-react/data-grid";
 import { CloseFillIcon } from "../common/Icons";
 
-export default function PopupItemClass({ isOpen, onClose, onSelect }) {
+export default function PopupItemClass({ isOpen, onClose, onSelect, onEditorPreparing, onSelectionChanged, onRowPrepared }) {
   const { translate } = useAutoI18n();
   const gridRef = useRef(null);
   if (!isOpen) return null;
@@ -90,6 +90,9 @@ export default function PopupItemClass({ isOpen, onClose, onSelect }) {
               keyExpr="Code"
               height="100%"
               showBorders={false}
+              onEditorPreparing={onEditorPreparing} 
+              onSelectionChanged={onSelectionChanged}
+              onRowPrepared={onRowPrepared}
             >
               <Selection mode="multiple" showCheckBoxesMode="always" />
             </DxDataGrid>
