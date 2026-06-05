@@ -78,20 +78,55 @@ export default function CreateItemGroupPanel({ onClose, onSave, isExpanded, onTo
     setForm(prev => ({ ...prev, [field]: value }));
   }
 
-  const handleSelectClass = (selectedRows) => {
-    const newDetails = [...gridDetails];
-    selectedRows.forEach(row => {
-      if (!newDetails.find(d => d.Code === row.Code)) {
-        newDetails.push(row);
+    const handleEditorPreparing = (e) => {
+      if (e.type === "selection" && e.parentType === "dataRow") {
+        // Tìm xem mã này có trong gridDetails chưa
+        const isExist = gridDetails.some(d => d.Code === e.row.data.Code);
+        if (isExist) {
+          e.editorOptions.disabled = true;
+          e.rowE
+        }
       }
-    });
+    };
+
+  const handleSelectionChanged = (e) => {
+    // Ngăn chặn trường hợp click vào dòng (Row Click) vượt qua checkbox
+    const newlySelectedKeys = e.currentSelectedRowKeys || [];
+    const conflictKeys = newlySelectedKeys.filter(key => 
+      gridDetails.some(d => d.Code === key)
+    );
+    if (conflictKeys.length > 0) {
+      e.component.deselectRows(conflictKeys);
+    }
+  };
+
+  const handleRowPrepared = (e) => {
+    if (e.rowType === "data") {
+      const isExist = gridDetails.some(d => d.Code === e.data.Code);
+      if (isExist) {
+        e.rowElement.style.opacity = "0.5";
+        e.rowElement.style.backgroundColor = "#f5f5f5";
+        e.rowElement.style.pointerEvents = "none"; 
+      }
+    }
+  };
+
+      const handleSelectClass = (selectedRows) => {
+    // Kiểm tra xem có bất kỳ dòng được chọn nào đã tồn tại trong gridDetails chưa
+    const hasDuplicate = selectedRows.some(row => 
+      gridDetails.some(d => d.Code === row.Code)
+    );
+    // Nếu không có trùng, thêm toàn bộ các dòng mới vào
+    const newDetails = [...gridDetails, ...selectedRows];
     setGridDetails(newDetails);
   };
+
+
 
   const handleDeleteClass = (e) => {
     e.preventDefault();
     const selectedRowKeys = detailGridRef.current?.instance().getSelectedRowKeys();
-    
+
     if (!selectedRowKeys || selectedRowKeys.length === 0) {
       alert(translate("Vui lòng chọn ít nhất 1 dòng để xóa."));
       return;
@@ -284,7 +319,6 @@ export default function CreateItemGroupPanel({ onClose, onSave, isExpanded, onTo
               showBorders={false}
               showFilterRow={false}
               showPagination={true}
-              
             >
               <Selection mode="multiple" showCheckBoxesMode="always" />
             </DxDataGrid>
@@ -304,7 +338,9 @@ export default function CreateItemGroupPanel({ onClose, onSave, isExpanded, onTo
         isOpen={isPopupOpen} 
         onClose={() => setIsPopupOpen(false)} 
         onSelect={handleSelectClass} 
-       
+        onEditorPreparing={handleEditorPreparing} 
+        onSelectionChanged={handleSelectionChanged}
+        onRowPrepared={handleRowPrepared}
       />
     </div>
   );
