@@ -173,3 +173,24 @@ export async function deleteDataGrid(signature, menuCd, data) {
   return res.data;
 }
 
+export async function loadProcessPage(signature, menuCd, data) {
+  const token = localStorage.getItem("token");
+
+  const res = await axios.post(
+    `${API_BASE}/Masterdata/DataService/Update`,
+    {
+      signature,
+      functionCode: "GETDATABYGRID",
+      MenuCd: menuCd,
+      Data: data
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return res.data;
+}

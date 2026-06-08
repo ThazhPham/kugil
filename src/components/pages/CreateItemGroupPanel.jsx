@@ -65,7 +65,9 @@ export default function CreateItemGroupPanel({ onClose, onSave, isExpanded, onTo
           seen.add(code);
           safeDetails.push({
             ...d,
-            Code: code
+            Code: code,
+            // Nhận diện dữ liệu đã xóa (soft-delete) từ API trả về
+            IsDeleted: d.IsDeleted === true || d.RowState === "D" || d.RowStatus === "D" || false
           });
         }
       });

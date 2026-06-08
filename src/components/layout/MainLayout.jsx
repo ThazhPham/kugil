@@ -22,6 +22,7 @@ const PAGE_MAP = {
   B012: ItemGroupPage, // Item Group
   B013: ItemClassPage, // Item Class
   B003: PlantPage,  // Plant
+  // B005: ProcessPage, //Process
 };
 
 export default function MainLayout({ menuItems, menuLoading, menuError, children }) {
