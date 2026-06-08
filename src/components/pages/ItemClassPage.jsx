@@ -5,7 +5,7 @@ import ItemPageLayout from "../common/ItemPageDataGrid.jsx";
 import DxDataGrid from "../common/DxDataGrid";
 import "../../css/ItemPage.css";
 import "../../css/DataGrid.css";
-import { Selection, Editing, Icons } from "devextreme-react/data-grid";
+import { Selection, Editing, Icons, Change } from "devextreme-react/data-grid";
 import { EditIcon } from "../common/Icons";
 import { Text } from "devextreme-react/cjs/circular-gauge.js";
 
@@ -128,63 +128,10 @@ export default function ItemClassPage() {
 
     if (e.changes.length) {
       const gridItems = e.component.getDataSource().items();
-
-            // ==========================================
-      // 1. KIỂM TRA TRÙNG LẶP CẢ CODE LẪN NAME
-      // ==========================================
-      let isDuplicate = false;
-      let duplicatedMessage = "";
-
-      for (let change of e.changes) {
-        if (change.type === "insert" || change.type === "update") {
-          
-          // Lấy dữ liệu gốc của dòng này (nếu là đang update)
-          const original = gridItems.find(item => item.Code === change.key || item._rowId === change.key) || {};
-          
       
 
-          // Kết hợp dữ liệu gốc và dữ liệu nháp: Nếu ô nào vừa bị gõ sửa thì lấy dữ liệu mới, không thì lấy dữ liệu cũ
-          const codeToCheck = change.data.Code !== undefined ? change.data.Code : original.Code;
-          const nameToCheck = change.data.Name !== undefined ? change.data.Name : original.Name;
-          
-          // --- Kiểm tra trùng Mã (Code) ---
-          if (codeToCheck) {
-            const foundCode = gridItems.find(item => 
-              item.Code === codeToCheck && 
-              item.Code !== change.key && 
-              item._rowId !== change.key // Bỏ qua chính dòng đang sửa
-            );
-            
-            if (foundCode) {
-              isDuplicate = true;
-              duplicatedMessage = `Mã Code '${codeToCheck}' đã tồn tại trong bảng!`;
-              break; // Thoát vòng lặp
-            }
-          }
-
-          // --- Kiểm tra trùng Tên (Name) ---
-          if (nameToCheck) {
-            const foundName = gridItems.find(item => 
-              item.Name === nameToCheck && 
-              item.Code !== change.key &&
-              item._rowId !== change.key
-            );
-            
-            if (foundName) {
-              isDuplicate = true;
-              duplicatedMessage = `Tên Class '${nameToCheck}' đã tồn tại trong bảng!`;
-              break; // Thoát vòng lặp
-            }
-          }
-        }
-      }
-
-      // Nếu phát hiện trùng, thông báo và dừng lưu
-      if (isDuplicate) {
-        alert(translate("Lỗi: ") + translate(duplicatedMessage));
-        return; // Dừng hẳn hàm handleSaving
-      }
-      // ==========================================
+      // Dữ liệu đã được DevExtreme validate an toàn (bao gồm cả kiểm tra trùng bằng validationRules).
+      // Giờ chỉ việc gom data để gửi xuống Backend:
 
       // Chuyển đổi e.changes sang mảng các object phẳng (phù hợp với backend)
       const dataToSave = e.changes.map((change, index) => {
@@ -208,10 +155,14 @@ export default function ItemClassPage() {
         return change.data;
       });
 
+      // Ép DataGrid hiển thị hiệu ứng Loading mờ màn hình
+      e.component.beginCustomLoading(translate("Đang lưu dữ liệu..."));
+
       e.promise = saveGridData("ItemClass", "B013", dataToSave)
         .then((res) => {
-          if (res && res.Success !== false) { // Có thể tuỳ chỉnh theo response thực tế
+          if (res && res.Success !== false) { 
             e.component.cancelEditData();
+            // Lệnh refresh() sẽ tự động kéo lại hàm Fetch và tự động hiện Loading tiếp
             e.component.refresh();
           } else {
             alert(translate("Lỗi khi lưu dữ liệu: ") + (res?.ReturnMess || "Unknown error"));
@@ -220,6 +171,10 @@ export default function ItemClassPage() {
         .catch((err) => {
           alert(translate("Lỗi kết nối khi lưu: ") + err.message);
           throw err;
+        })
+        .finally(() => {
+          // Tắt hiệu ứng Loading thủ công khi Promise kết thúc
+          e.component.endCustomLoading();
         });
     }
   }, [translate]);
@@ -242,7 +197,6 @@ export default function ItemClassPage() {
       fixed:  true,
       sortOrder: "desc",
       alignment: "center",
-      validationRules: [{ type: "required" }],
       allowEditing: (options) => options?.row?.isNewRow === true,
       editorOptions: {
         valueChangeEvent: 'input',
@@ -254,13 +208,70 @@ export default function ItemClassPage() {
           spellCheck: 'false'
         }
       },
+      validationRules: [
+        { type: "required", message: translate("Vui lòng nhập Mã!") },
+        {
+          type: "custom",
+          message: translate("Mã Code đã tồn tại!"),
+          validationCallback: (e) => {
+            if (!e.value) return true;
+            const grid = gridRef.current?.instance();
+            if (!grid) return true;
+            
+            const items = grid.getDataSource().items();
+            const changes = grid.option("editing.changes") || [];
+            let duplicateCount = 0;
+            
+            for (let item of items) {
+               const isBeingEdited = changes.some(c => c.key === item.Code || c.key === item._rowId);
+               if (!isBeingEdited && item.Code === e.value) duplicateCount++;
+            }
+            for (let change of changes) {
+               if (change.type === "insert" || change.type === "update") {
+                   const original = items.find(i => i.Code === change.key || i._rowId === change.key) || {};
+                   const codeToCheck = change.data.Code !== undefined ? change.data.Code : original.Code;
+                   if (codeToCheck === e.value) duplicateCount++;
+               }
+            }
+            return duplicateCount <= 1;
+          }
+        }
+      ]
     },
     { 
       dataField: "Name",  
       caption: translate("Class Name *"), 
       minWidth: 300, 
       dataType: "string",
-      validationRules: [{ type: "required" }]
+      validationRules: [
+        { type: "required", message: translate("Vui lòng nhập Tên Class!") },
+        {
+          type: "custom",
+          message: translate("Tên Class đã tồn tại!"),
+          validationCallback: (e) => {
+            if (!e.value) return true;
+            const grid = gridRef.current?.instance();
+            if (!grid) return true;
+            
+            const items = grid.getDataSource().items();
+            const changes = grid.option("editing.changes") || [];
+            let duplicateCount = 0;
+            
+            for (let item of items) {
+               const isBeingEdited = changes.some(c => c.key === item.Code || c.key === item._rowId);
+               if (!isBeingEdited && item.Name === e.value) duplicateCount++;
+            }
+            for (let change of changes) {
+               if (change.type === "insert" || change.type === "update") {
+                   const original = items.find(i => i.Code === change.key || i._rowId === change.key) || {};
+                   const nameToCheck = change.data.Name !== undefined ? change.data.Name : original.Name;
+                   if (nameToCheck === e.value) duplicateCount++;
+               }
+            }
+            return duplicateCount <= 1;
+          }
+        }
+      ]
     },
     { dataField: "UseYN", caption: translate("Active"),     
       width: 150,    
